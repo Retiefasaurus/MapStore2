@@ -1,8 +1,13 @@
 var path = require("path");
 module.exports = function karmaConfig(config) {
     config.set({
-	plugins: [require( 'karma-phantomjs-launcher' )],
- 	browsers: [ 'PhantomJS', 'Chrome' ],
+    	browsers: ['Chrome'],
+	customLaunchers: {
+	      Chrome_without_sandbox: {
+		base: 'Chrome',
+		flags: ['--no-sandbox'] // with sandbox it fails under Docker
+	   }
+	},
 
         singleRun: true,
 
