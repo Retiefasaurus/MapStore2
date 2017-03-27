@@ -1,8 +1,8 @@
 var path = require("path");
 module.exports = function karmaConfig(config) {
     config.set({
-
-        browsers: [ 'Chrome' ],
+	plugins: [require( 'karma-phantomjs-launcher' )],
+ 	browsers: [ 'PhantomJS', 'Chrome' ],
 
         singleRun: true,
 
