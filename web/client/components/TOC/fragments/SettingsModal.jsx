@@ -7,7 +7,7 @@
  */
 
 const React = require('react');
-const {Modal, Button, Glyphicon, Tabs, Tab} = require('react-bootstrap');
+const {Button, Glyphicon, Tabs, Tab} = require('react-bootstrap');
 
 require("./css/settingsModal.css");
 
@@ -16,9 +16,11 @@ const ConfirmButton = require('../../buttons/ConfirmButton');
 const General = require('./settings/General');
 const Display = require('./settings/Display');
 const WMSStyle = require('./settings/WMSStyle');
-const {Portal} = require('react-overlays');
+const Elevation = require('./settings/Elevation');
+const Portal = require('../../misc/Portal');
 const assign = require('object-assign');
 const Message = require('../../I18N/Message');
+const LayersUtils = require('../../../utils/LayersUtils');
 
 const SettingsModal = React.createClass({
     propTypes: {
@@ -32,12 +34,14 @@ const SettingsModal = React.createClass({
         retrieveLayerData: React.PropTypes.func,
         titleText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
         opacityText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
+        elevationText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
         saveText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
         deleteText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
         confirmDeleteText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
         closeText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
         options: React.PropTypes.object,
-        asModal: React.PropTypes.bool,
+        chartStyle: React.PropTypes.object,
+        showElevationChart: React.PropTypes.bool,
         buttonSize: React.PropTypes.string,
         closeGlyph: React.PropTypes.string,
         panelStyle: React.PropTypes.object,
@@ -45,7 +49,8 @@ const SettingsModal = React.createClass({
         includeCloseButton: React.PropTypes.bool,
         includeDeleteButton: React.PropTypes.bool,
         realtimeUpdate: React.PropTypes.bool,
-        groups: React.PropTypes.array
+        groups: React.PropTypes.array,
+        getDimension: React.PropTypes.func
     },
     getDefaultProps() {
         return {
@@ -57,7 +62,6 @@ const SettingsModal = React.createClass({
             updateNode: () => {},
             removeNode: () => {},
             retrieveLayerData: () => {},
-            asModal: true,
             buttonSize: "large",
             closeGlyph: "",
             panelStyle: {
@@ -73,7 +77,8 @@ const SettingsModal = React.createClass({
             includeDeleteButton: true,
             realtimeUpdate: true,
             deleteText: <Message msgId="layerProperties.delete" />,
-            confirmDeleteText: <Message msgId="layerProperties.confirmDelete" />
+            confirmDeleteText: <Message msgId="layerProperties.confirmDelete" />,
+            getDimension: LayersUtils.getDimension
         };
     },
     getInitialState() {
@@ -125,15 +130,29 @@ const SettingsModal = React.createClass({
                     o/>);
         }
     },
+    renderElevationTab() {
+        const elevationDim = this.props.getDimension(this.props.element.dimensions, 'elevation');
+        if (this.props.element.type === "wms" && this.props.element.dimensions && elevationDim) {
+            return (<Elevation
+               elevationText={this.props.elevationText}
+               chartStyle={this.props.chartStyle}
+               showElevationChart={this.props.showElevationChart}
+               element={this.props.element}
+               elevations={elevationDim}
+               appState={this.state || {}}
+               onChange={(key, value) => this.updateParams({[key]: value}, this.props.realtimeUpdate)} />);
+        }
+    },
     render() {
         const general = this.renderGeneral();
         const display = this.renderDisplay();
         const style = this.renderStyleTab();
-        const tabs = (<Tabs defaultActiveKey={1} id="layerProperties-tabs">
-            <Tab eventKey={1} title={<Message msgId="layerProperties.general" />}>{general}</Tab>
-            <Tab eventKey={2} title={<Message msgId="layerProperties.display" />}>{display}</Tab>
-            <Tab eventKey={3} title={<Message msgId="layerProperties.style" />} disabled={!style} >{style}</Tab>
-          </Tabs>);
+        const elevation = this.renderElevationTab();
+        const availableTabs = [<Tab eventKey={1} title={<Message msgId="layerProperties.general" />}>{general}</Tab>,
+                <Tab eventKey={2} title={<Message msgId="layerProperties.display" />}>{display}</Tab>,
+                <Tab eventKey={3} title={<Message msgId="layerProperties.style" />} disabled={!style} >{style}</Tab>]
+            .concat(elevation ? [<Tab eventKey={4} title={<Message msgId="layerProperties.elevation" />}>{elevation}</Tab>] : []);
+        const tabs = <Tabs defaultActiveKey={1} id="layerProperties-tabs">{availableTabs}</Tabs>;
         const footer = (<span role="footer">
             {this.props.includeCloseButton ? <Button bsSize={this.props.buttonSize} onClick={this.onClose}>{this.props.closeText}</Button> : <span/>}
             {this.props.includeDeleteButton ?
@@ -152,17 +171,7 @@ const SettingsModal = React.createClass({
         </span>);
 
         if (this.props.settings.expanded) {
-            return this.props.asModal ? (
-                <Modal {...this.props.options} show={this.props.settings.expanded} container={document.getElementById("body")}>
-                    <Modal.Header><Modal.Title>{this.props.titleText}</Modal.Title></Modal.Header>
-                    <Modal.Body>
-                        {tabs}
-                    </Modal.Body>
-                    <Modal.Footer>
-                        {footer}
-                    </Modal.Footer>
-                </Modal>
-            ) : (<Portal><Dialog id={this.props.id} style={this.props.panelStyle} className={this.props.panelClassName}>
+            return (<Portal><Dialog id={this.props.id} style={this.props.panelStyle} className={this.props.panelClassName}>
                 <span role="header">
                     <span className="layer-settings-panel-title">{this.props.titleText}</span>
                     <button onClick={this.onClose} className="layer-settings-panel-close close">{this.props.closeGlyph ? <Glyphicon glyph={this.props.closeGlyph}/> : <span>×</span>}</button>

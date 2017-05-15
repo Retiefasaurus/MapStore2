@@ -5,12 +5,12 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var React = require('react');
-var ReactDOM = require('react-dom');
-var CesiumMap = require('../Map.jsx');
-var CesiumLayer = require('../Layer.jsx');
-var expect = require('expect');
-var Cesium = require('../../../../libs/cesium');
+const React = require('react');
+const ReactDOM = require('react-dom');
+const CesiumMap = require('../Map.jsx');
+const CesiumLayer = require('../Layer.jsx');
+const expect = require('expect');
+const Cesium = require('../../../../libs/cesium');
 
 require('../../../../utils/cesium/Layers');
 require('../plugins/OSMLayer');
@@ -78,8 +78,65 @@ describe('CesiumMap', () => {
         expect(map.map.imageryLayers.length).toBe(1);
     });
 
-    it('check if the handler for "moveend" event is called', () => {
-        const expectedCalls = 2;
+    it('check if the handler for "moveend" event is called', (done) => {
+        const expectedCalls = 1;
+        const precision = 1000000000;
+        const testHandlers = {
+            handler: () => {}
+        };
+        var spy = expect.spyOn(testHandlers, 'handler');
+
+        const map = ReactDOM.render(
+            <CesiumMap
+                center={{y: 10, x: 44}}
+                zoom={5}
+                onMapViewChanges={testHandlers.handler}
+                viewerOptions={{
+                    orientation: {
+                        heading: 0,
+                        pitch: -1 * Math.PI / 2,
+                        roll: 0
+                    }
+                }}
+
+            />
+        , document.getElementById("container"));
+
+        const cesiumMap = map.map;
+        cesiumMap.camera.moveEnd.addEventListener(() => {
+            // check arguments
+            expect(spy.calls[0].arguments.length).toEqual(7);
+            expect(spy.calls.length).toBe(expectedCalls);
+            // check camera moved
+            expect(Math.round(spy.calls[0].arguments[0].y * precision) / precision).toBe(30);
+            expect(Math.round(spy.calls[0].arguments[0].x * precision) / precision).toBe(20);
+            expect(spy.calls[0].arguments[1]).toEqual(5);
+
+            expect(spy.calls[0].arguments[6].orientation.heading).toBe(1);
+
+            for (let c = 0; c < spy.calls.length; c++) {
+                expect(spy.calls[c].arguments[2].bounds).toExist();
+                expect(spy.calls[c].arguments[2].crs).toExist();
+                expect(spy.calls[c].arguments[3].height).toExist();
+                expect(spy.calls[c].arguments[3].width).toExist();
+            }
+            done();
+
+        });
+        cesiumMap.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(
+                20,
+                30,
+                5000000
+            ),
+            orientation: {
+                heading: 1,
+                pitch: -1 * Math.PI / 2,
+                roll: 0
+            }
+        });
+    });
+    it('check mouse click handler', (done) => {
         const testHandlers = {
             handler: () => {}
         };
@@ -89,37 +146,16 @@ describe('CesiumMap', () => {
             <CesiumMap
                 center={{y: 43.9, x: 10.3}}
                 zoom={11}
-                onMapViewChanges={testHandlers.handler}
+                onClick={testHandlers.handler}
             />
         , document.getElementById("container"));
-
-        const cesiumMap = map.map;
-        cesiumMap.camera.moveEnd.addEventListener(() => {
-            expect(spy.calls.length).toEqual(expectedCalls);
-            expect(spy.calls[0].arguments.length).toEqual(6);
-
-            expect(spy.calls[0].arguments[0].y).toEqual(43.9);
-            expect(spy.calls[0].arguments[0].x).toEqual(10.3);
-            expect(spy.calls[0].arguments[1]).toEqual(11);
-
-            expect(spy.calls[1].arguments[0].y).toEqual(44);
-            expect(spy.calls[1].arguments[0].x).toEqual(10);
-            expect(spy.calls[1].arguments[1]).toEqual(12);
-
-            for (let c = 0; c < expectedCalls; c++) {
-                expect(spy.calls[c].arguments[2].bounds).toExist();
-                expect(spy.calls[c].arguments[2].crs).toExist();
-                expect(spy.calls[c].arguments[3].height).toExist();
-                expect(spy.calls[c].arguments[3].width).toExist();
-            }
-        });
-        cesiumMap.camera.setView({
-            destination: Cesium.Cartesian3.fromDegrees(
-                10,
-                44,
-                5000000
-            )
-        });
+        expect(map.map).toExist();
+        map.onClick(map.map, {position: {x: 100, y: 100 }});
+        setTimeout(() => {
+            expect(spy.calls.length).toEqual(1);
+            expect(spy.calls[0].arguments.length).toEqual(1);
+            done();
+        }, 800);
     });
 
     it('check if the map changes when receive new props', () => {
@@ -144,32 +180,4 @@ describe('CesiumMap', () => {
         expect(Math.round(cesiumMap.camera.positionCartographic.longitude * 180.0 / Math.PI)).toBe(10);
     });
 
-    it('check that the map orientation does not change on pan / zoom', () => {
-        let map = ReactDOM.render(
-            <CesiumMap
-                center={{y: 43.9, x: 10.3}}
-                zoom={10}
-            />
-        , document.getElementById("container"));
-
-        const cesiumMap = map.map;
-        cesiumMap.camera.lookUp(1.0);
-        cesiumMap.camera.lookRight(1.0);
-        const precision = Math.pow(10, 8);
-        const heading = Math.round(cesiumMap.camera.heading * precision) / precision;
-        const pitch = Math.round(cesiumMap.camera.pitch * precision) / precision;
-        const roll = Math.round(cesiumMap.camera.roll * precision) / precision;
-
-        map = ReactDOM.render(
-            <CesiumMap
-                center={{y: 44, x: 10}}
-                zoom={12}
-            />
-        , document.getElementById("container"));
-
-        expect(Math.round(cesiumMap.camera.heading * precision) / precision).toBe(heading);
-        expect(Math.round(cesiumMap.camera.pitch * precision) / precision).toBe(pitch);
-        expect(Math.round(cesiumMap.camera.roll * precision) / precision).toBe(roll);
-
-    });
 });

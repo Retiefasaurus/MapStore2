@@ -13,11 +13,9 @@ const PermissionEditor = require('../../security/PermissionEditor');
 
 require('./css/modals.css');
 
-const {Modal, Button, Glyphicon, Grid, Row, Col} = require('react-bootstrap');
+const {Button, Grid, Row, Col} = require('react-bootstrap');
+const Modal = require('../../misc/Modal');
 const Message = require('../../I18N/Message');
-
-const Dialog = require('../../../components/misc/Dialog');
-const assign = require('object-assign');
 
 const Spinner = require('react-spinkit');
 const LocaleUtils = require('../../../utils/LocaleUtils');
@@ -33,6 +31,7 @@ const MetadataModal = React.createClass({
         authHeader: React.PropTypes.string,
         show: React.PropTypes.bool,
         options: React.PropTypes.object,
+        metadata: React.PropTypes.object,
         loadPermissions: React.PropTypes.func,
         loadAvailableGroups: React.PropTypes.func,
         onSave: React.PropTypes.func,
@@ -58,6 +57,7 @@ const MetadataModal = React.createClass({
         onUpdateCurrentMap: React.PropTypes.func,
         onNewGroupChoose: React.PropTypes.func,
         onNewPermissionChoose: React.PropTypes.func,
+        metadataChanged: React.PropTypes.func,
         displayPermissionEditor: React.PropTypes.bool,
         availablePermissions: React.PropTypes.arrayOf(React.PropTypes.string),
         availableGroups: React.PropTypes.arrayOf(React.PropTypes.object),
@@ -85,6 +85,7 @@ const MetadataModal = React.createClass({
             onDeleteThumbnail: ()=> {},
             onGroupsChange: ()=> {},
             onAddPermission: ()=> {},
+            metadataChanged: ()=> {},
             onNewGroupChoose: ()=> {},
             onNewPermissionChoose: ()=> {},
             user: {
@@ -114,26 +115,12 @@ const MetadataModal = React.createClass({
             groups: []
         };
     },
-    componentWillMount() {
-        if (this.props.map && this.props.map.name) {
-            this.setState({
-                name: this.props.map.name,
-                description: this.props.map.description || ''
-            });
-        }
-    },
     componentWillReceiveProps(nextProps) {
         if (nextProps.map && this.props.map && !nextProps.map.loading && this.state && this.state.saving) {
             this.setState({
               saving: false
             });
             this.props.onClose();
-        }
-        if (nextProps.map && nextProps.map.name) {
-            this.setState({
-                name: nextProps.map.name,
-                description: nextProps.map.description || ''
-            });
         }
     },
     componentDidUpdate(prevProps) {
@@ -144,15 +131,6 @@ const MetadataModal = React.createClass({
             }
         }
     },
-    updateThumbnail() {
-        this.refs.thumbnail.updateThumbnail();
-    },
-    loadPermissions() {
-        this.props.loadPermissions(this.props.map.id);
-    },
-    loadAvailableGroups() {
-        this.props.loadAvailableGroups(this.props.user);
-    },
     onSave() {
         this.setState({
             saving: true
@@ -160,8 +138,8 @@ const MetadataModal = React.createClass({
         let metadata = null;
 
         if ( this.isMetadataChanged() ) {
-            let name = this.state.name;
-            let description = this.state.description;
+            let name = this.props.metadata.name;
+            let description = this.props.metadata.description;
             metadata = {
                 name: name,
                 description: description
@@ -222,11 +200,7 @@ const MetadataModal = React.createClass({
             </span>);
         const body = (
             <Metadata role="body" ref="mapMetadataForm"
-                onChange={(prop, value ) => {
-                    this.setState({
-                        [prop]: value
-                    });
-                }}
+                onChange={this.props.metadataChanged}
                 map={this.props.map}
                 nameFieldText={<Message msgId="map.name" />}
                 descriptionFieldText={<Message msgId="map.description" />}
@@ -247,7 +221,7 @@ const MetadataModal = React.createClass({
         } else {
             messageIdError = "Default";
         }
-        return this.props.useModal ? (
+        return (
             <Modal {...this.props.options}
                 show={this.props.show}
                 onHide={this.props.onClose}
@@ -303,18 +277,21 @@ const MetadataModal = React.createClass({
                 <Modal.Footer>
                   {footer}
                 </Modal.Footer>
-            </Modal>) : (
-            <Dialog id="mapstore-mapmetadata-panel" style={assign({}, this.props.style, {display: this.props.show ? "block" : "none"})}>
-                <span role="header"><span className="mapmetadata-panel-title"><Message msgId="manager.editMapMetadata" /></span><button onClick={this.props.onClose} className="login-panel-close close">{this.props.closeGlyph ? <Glyphicon glyph={this.props.closeGlyph}/> : <span>×</span>}</button></span>
-                {body}
-                {footer}
-            </Dialog>
-        );
+            </Modal>);
+    },
+    loadAvailableGroups() {
+        this.props.loadAvailableGroups(this.props.user);
+    },
+    loadPermissions() {
+        this.props.loadPermissions(this.props.map.id);
+    },
+    updateThumbnail() {
+        this.refs.thumbnail.updateThumbnail();
     },
     isMetadataChanged() {
         return this.props.map && (
-            this.state.description !== this.props.map.description ||
-            this.state.name !== this.props.map.name
+            this.props.metadata.description !== this.props.map.description ||
+            this.props.metadata.name !== this.props.map.name
         );
     },
     isThumbnailChanged() {

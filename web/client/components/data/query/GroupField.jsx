@@ -7,7 +7,8 @@
  */
 const React = require('react');
 
-const {Row, Col, Button, Glyphicon, Panel, OverlayTrigger, Tooltip} = require('react-bootstrap');
+const {Row, Col, Button, Glyphicon, Panel, Tooltip} = require('react-bootstrap');
+const OverlayTrigger = require('../../misc/OverlayTrigger');
 
 const FilterField = require('./FilterField');
 const ComboField = require('./ComboField');
@@ -94,6 +95,9 @@ const GroupField = React.createClass({
             case "string": {
                 return ["=", "like", "ilike", "isNull"];
             }
+            case "boolean": {
+                return ["="];
+            }
             default:
                 return ["=", ">", "<", ">=", "<=", "<>", "><"];
         }
@@ -128,6 +132,10 @@ const GroupField = React.createClass({
                             <TextField
                                 operator={filterField.operator}
                                 attType="string"/>
+                            <ComboField
+                                fieldOptions={['true', 'false']}
+                                attType="boolean"
+                                comboFilter={"contains"}/>
                         </FilterField>
                     </Col>
                     <Col xs={2}>

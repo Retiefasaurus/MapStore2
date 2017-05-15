@@ -12,7 +12,9 @@ module.exports = {
     entry: assign({
         'webpack-dev-server': 'webpack-dev-server/client?http://0.0.0.0:8081', // WebpackDevServer host and port
         'webpack': 'webpack/hot/only-dev-server', // "only" prevents reload on syntax errors
-        "mapstore2": path.join(__dirname, "web", "client", "product", "app")
+        "mapstore2": path.join(__dirname, "web", "client", "product", "app"),
+        "embedded": path.join(__dirname, "web", "client", "product", "embedded"),
+        "ms2-api": path.join(__dirname, "web", "client", "product", "api")
     }, themeEntries),
     output: {
       path: path.join(__dirname, "web", "client", "dist"),
@@ -28,7 +30,7 @@ module.exports = {
             options: {
                 postcss: {
                     plugins: [
-                      require('postcss-prefix-selector')({prefix: '.ms2', exclude: ['.ms2']})
+                      require('postcss-prefix-selector')({prefix: '.ms2', exclude: ['.ms2', '[data-ms2-container]']})
                     ]
                 },
                 context: __dirname
@@ -131,6 +133,10 @@ module.exports = {
             },
             '/mapstore/proxy': {
                 target: "http://dev.mapstore2.geo-solutions.it"
+            },
+            '/docs': {
+                target: "http://localhost:8081",
+                pathRewrite: {'/docs': '/mapstore/docs'}
             }
         }
     },

@@ -8,11 +8,13 @@
 const React = require('react');
 const assign = require('object-assign');
 
-const {OverlayTrigger, Tooltip} = require('react-bootstrap');
+const {Tooltip} = require('react-bootstrap');
+
+const OverlayTrigger = require('../../misc/OverlayTrigger');
 
 const {DropdownList, Multiselect} = require('react-widgets');
 
-const LocaleUtils = require('../../../utils/LocaleUtils');
+const Message = require('../../../components/I18N/Message');
 
 const ComboField = React.createClass({
     propTypes: {
@@ -20,6 +22,7 @@ const ComboField = React.createClass({
         style: React.PropTypes.object,
         valueField: React.PropTypes.string,
         textField: React.PropTypes.string,
+        placeholder: React.PropTypes.string,
         fieldOptions: React.PropTypes.array,
         fieldName: React.PropTypes.string,
         fieldRowId: React.PropTypes.number,
@@ -62,6 +65,7 @@ const ComboField = React.createClass({
             style: {
                 width: "100%"
             },
+            placeholder: <Message msgId="queryform.comboField.default_placeholder"/>,
             multivalue: false,
             disabled: false,
             valueField: null,
@@ -87,8 +91,6 @@ const ComboField = React.createClass({
             style = assign({}, style, {borderColor: "#FF0000"});
         }
 
-        let placeholder = LocaleUtils.getMessageById(this.context.messages, "queryform.attributefilter.combo_placeholder");
-
         const ListComponent = this.props.multivalue ? Multiselect : DropdownList;
 
         const list = this.props.valueField !== null && this.props.textField !== null ? (
@@ -102,7 +104,7 @@ const ComboField = React.createClass({
                 value={this.props.fieldValue}
                 caseSensitive={false}
                 minLength={3}
-                placeholder={placeholder}
+                placeholder={this.props.placeholder}
                 filter={this.props.comboFilter}
                 style={style}
                 groupBy={this.props.groupBy}
@@ -119,7 +121,7 @@ const ComboField = React.createClass({
                 value={this.props.fieldValue}
                 caseSensitive={false}
                 minLength={3}
-                placeholder={placeholder}
+                placeholder={this.props.placeholder}
                 filter={this.props.comboFilter}
                 style={style}
                 groupBy={this.props.groupBy}

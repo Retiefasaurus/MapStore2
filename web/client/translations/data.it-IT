@@ -20,6 +20,10 @@
         "about_p6": "MapStore2 è sviluppato da:",
         "enable": "Abilita",
         "layers": "Livelli",
+        "warning": "Attenzione",
+        "version": {
+            "label": "Versione"
+        },
         "layerProperties": {
             "windowTitle": "Proprietà del livello",
             "title": "Titolo",
@@ -28,6 +32,9 @@
             "general": "Generale",
             "display": "Visualizzazione",
             "style": "Stile",
+            "transparent": "Trasparenza",
+            "singleTile": "Single Tile",
+            "cached": "Usa la cache",
             "styleCustom": "Usa stile con nome \"{value}\"",
             "styleListLoadError": "Si è verificato un errore durante il caricamento della lista degli stili",
             "stylesRefreshList": "Aggiorna lista degli stili",
@@ -36,7 +43,12 @@
             "deleteLayer":"Elimina Livello",
             "deleteLayerMessage": "Sei sicuro di voler eliminare questo livello?",
             "confirmDelete": "Sei sicuro?",
-            "featureTypeError": "Impossibile caricare gli attributi del layer"
+            "featureTypeError": "Impossibile caricare gli attributi del layer",
+            "elevation": "Elevazione"
+        },
+        "globeswitcher": {
+            "tooltipDeactivate": "Disattiva la modalità 3D",
+            "tooltipActivate": "Attiva la modalità 3D"
         },
         "background": "Sfondo",
         "language": "Lingua",
@@ -53,6 +65,7 @@
         "save": "Salva",
         "saveAs": "Salva con nome",
         "opacity": "Opacità",
+        "elevation": "Elevazione",
         "close": "Chiudi",
         "cancel": "Annulla",
         "confirm": "Conferma",
@@ -65,10 +78,11 @@
         "permissions": "Permessi",
         "home":{
             "open": "Apri",
-            "description": "MapStore è sviluppato per creare, salvare e condividere in modo semplice ed intuitivo mappe e mashup creati selezionando contenuti da server come Google Maps, OpenStreetMap, MapQuest o da server specifici forniti dalla propria organizzazione o da terzi. <br/> Visita la <a href=\"http://geosolutions-it.github.io/MapStore2/\">home page</a> per maggiori dettagli.",
+            "description": "MapStore è sviluppato per creare, salvare e condividere in modo semplice ed intuitivo mappe e mashup creati selezionando contenuti da server come Google Maps, OpenStreetMap, MapQuest o da server specifici forniti dalla propria organizzazione o da terzi. <br/> Visita la <a href=\"/mapstore/docs/\">home page</a> per maggiori dettagli.",
             "Applications": "Applicazioni",
             "Examples": "Esempi",
             "LinkedinGroup": "Gruppo Linkedin Mapstore",
+            "scrollTop": "Torna all'inizio della pagina",
             "ml": {
                 "title": "Resta in contatto e tieniti aggiornato con le mailing list",
                 "subscribe_users": "Sottoscrivi la mailing list degli utenti",
@@ -174,7 +188,11 @@
             "editLayerProperties": "Modifica proprietà dal livello",
             "searchFeatures": "Effettua una ricerca su questo livello...",
             "removeLayer": "Rimuovi livello",
-            "loadingerror": "Il livello non è stato caricato correttamente"
+            "loadingerror": "Il livello non è stato caricato correttamente",
+            "measure": "Misure",
+            "backgroundSwitcher": "Sfondi",
+            "layers": "Livelli",
+            "drawerButton": "Livelli"
         },
         "print":{
             "paneltitle": "Stampa",
@@ -215,6 +233,7 @@
         },
         "getFeatureInfoTitle": "Informazioni Sulle Feature",
         "identifyTitle": "Informazioni Sulle Feature",
+        "identifyNoQueryableLayers": "Nessun livello interrogabile attivo",
         "identifyRevGeocodeHeader": "Coordinate",
         "identifyRevGeocodeModalTitle": "Indirizzo",
         "identifyRevGeocodeSubmitText": "Più informazioni",
@@ -352,6 +371,11 @@
             "zoomOutTooltip": "Diminuisci Zoom",
             "zoomAllTooltip": "Zoom Alla Massima Estensione"
         },
+        "fullscreen": {
+            "tooltipActivate":  "Passa a schermo intero",
+            "tooltipDeactivate": "Esci da schermo intero",
+            "viewLargerMap": "Visualizza mappa più grande"
+        },
         "helptexts": {
             "scaleBox": "Questo è il testo di aiuto per ScaleBox",
             "zoomToMaxExtentButton": "Questo è il testo di aiuto per ZoomToMaxExtentButton",
@@ -384,16 +408,20 @@
             "config": {
                 "load_config_exception": "Errore Caricamento Configurazione"
             },
+            "comboField": {
+                "default_placeholder": "Seleziona..."
+            },
             "form": {
                 "header": "Cerca nel dataset",
                 "dataset_header": "Dataset"
             },
+            "emptyfilter": "Nessun filtro selezionato. La ricerca potrebbe andare in timeout se il server non supporta la paginazione.",
             "attributefilter":{
                 "add_condition": " Aggiungi Condizione",
                 "add_group": " Aggiungi Gruppo",
                 "group_label_a": "Soddisfa",
                 "group_label_b": "seguenti condizioni:",
-                "combo_placeholder": "Seleziona",
+                "combo_placeholder": "Attributo",
                 "text_placeholder": "Digita il testo da cercare",
                 "attribute_filter_header": "Filtro Attributi",
                 "groupField": {
@@ -410,8 +438,9 @@
                 }
             },
             "spatialfilter": {
-                "selection_method": "Metodo di selezione",
+                "filterType": "Tipo di filtro",
                 "geometric_operation": "Operazione Geometrica",
+                "combo_placeholder": "Seleziona...",
                 "spatial_filter_header": "Filtro Spaziale",
                 "draw_start_label": "Disegna sulla mappa l'area di interesse",
                 "dwithin_label": "metri",
@@ -454,6 +483,8 @@
             "passwordCheckFail": "Le due password non corrispondono",
             "username": "Username",
             "password": "Password",
+            "passwordChanged": "La password è stata cambiata",
+            "passwordError": "Errore nel cambio della password",
             "signIn":"Accedi",
             "loginFail":"Login Fallito",
             "loginFailedStatusMessages": {
@@ -514,7 +545,12 @@
             "titlePanel": "Condividi la mappa",
             "socialIntro": "Sul tuo social preferito",
             "directLinkTitle": "Con un Link diretto",
+            "social": "Social",
+            "direct": "Link",
+            "code": "Embed",
             "embeddedLinkTitle": "Con il codice embedded",
+            "forceDrawer": "Mostra l'indice dei livelli",
+            "apiLinkTitle": "Usando le API",
             "QRCodeLinkTitle": "Usando il QR Code",
             "msgCopiedUrl":"Copiato",
             "msgToCopyUrl":"Clicca per copiare"
@@ -813,6 +849,10 @@
                 "zoomOutButton": {
                     "title": "Zoom Out",
                     "text": "Premi per ridurre la mappa"
+                },
+                "fullscreen": {
+                    "title": "Schermo Intero",
+                    "text": "Premi per passare a schermo intero"
                 },
                 "identifyButton": {
                     "title": "Info",

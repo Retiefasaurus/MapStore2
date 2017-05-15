@@ -10,6 +10,7 @@ const ReactDOM = require('react-dom');
 
 const StandardApp = require('../components/app/StandardApp');
 const LocaleUtils = require('../utils/LocaleUtils');
+const ConfigUtils = require('../utils/ConfigUtils');
 const {connect} = require('react-redux');
 
 const {configureMap, loadMapConfig} = require('../actions/config');
@@ -19,126 +20,15 @@ const url = require('url');
 const ThemeUtils = require('../utils/ThemeUtils');
 
 const assign = require('object-assign');
+const {partialRight, merge} = require('lodash');
 
-require('./mapstore2.css');
+const defaultConfig = require('json-loader!../config.json');
 
-const defaultConfig = {
-    "map": {
-        "projection": "EPSG:3857",
-        "units": "m",
-        "center": {"x": 1250000.000000, "y": 5370000.000000, "crs": "EPSG:900913"},
-        "zoom": 5,
-        "maxExtent": [
-            -20037508.34, -20037508.34,
-            20037508.34, 20037508.34
-        ],
-        "layers": [{
-            "type": "osm",
-            "title": "Open Street Map",
-            "name": "mapnik",
-            "source": "osm",
-            "group": "background",
-            "visibility": true
-        },
-        {
-            "type": "tileprovider",
-            "title": "NASAGIBS Night 2012",
-            "provider": "NASAGIBS.ViirsEarthAtNight2012",
-            "name": "Night2012",
-            "source": "nasagibs",
-            "group": "background",
-            "visibility": false
-        },
-        {
-            "type": "wms",
-            "url": "http://www.realvista.it/reflector/open/service",
-            "visibility": false,
-            "title": "e-Geos Ortofoto RealVista 1.0",
-            "name": "rv1",
-            "group": "background",
-            "format": "image/jpeg"
-        },
-        {
-            "type": "wms",
-            "url": "https://demo.geo-solutions.it/geoserver/wms",
-            "visibility": false,
-            "title": "Natural Earth",
-            "name": "sde:NE2_HR_LC_SR_W_DR",
-            "group": "background",
-            "format": "image/png"
-        },
-        {
-            "type": "wms",
-            "url": "https://demo.geo-solutions.it/geoserver/wms",
-            "visibility": false,
-            "title": "Hypsometric",
-            "name": "sde:HYP_HR_SR_OB_DR",
-            "group": "background",
-            "format": "image/png"
-        },
-        {
-            "type": "wms",
-            "url": "https://demo.geo-solutions.it/geoserver/wms",
-            "visibility": false,
-            "title": "Gray Earth",
-            "name": "sde:GRAY_HR_SR_OB_DR",
-            "group": "background",
-            "format": "image/png"
-        },
-        {
-            "type": "wms",
-            "url": "https://demo.geo-solutions.it/geoserver/wms",
-            "visibility": true,
-            "opacity": 0.5,
-            "title": "Weather data",
-            "name": "nurc:Arc_Sample",
-            "group": "Meteo",
-            "format": "image/png"
-        },
-        {
-            "type": "tileprovider",
-            "title": "OpenTopoMap",
-            "provider": "OpenTopoMap",
-            "name": "OpenTopoMap",
-            "source": "OpenTopoMap",
-            "group": "background",
-            "visibility": false
-        }]
-    }
-};
+const localConfig = require('json-loader!../localConfig.json');
 
 const defaultPlugins = {
-    "mobile": ["Map"],
-    "desktop": [
-          "Map",
-          "Help",
-          "Share",
-          "DrawerMenu",
-          "Identify",
-          "Locate",
-          "TOC",
-          "BackgroundSwitcher",
-          "Measure",
-          "MeasureResults",
-          "Print",
-          "ShapeFile",
-          "Settings",
-          "MetadataExplorer",
-          "MousePosition",
-          "Toolbar",
-          "ScaleBox",
-          "ZoomAll",
-          "MapLoading",
-          "Snapshot",
-          "ZoomIn",
-          "ZoomOut",
-          "Login",
-          "OmniBar",
-          "BurgerMenu",
-          "Expander",
-          "Undo",
-          "Redo"
-    ]
+  "mobile": localConfig.plugins.embedded,
+  "desktop": localConfig.plugins.embedded
 };
 
 function mergeDefaultConfig(pluginName, cfg) {
@@ -198,10 +88,9 @@ function buildPluginsCfg(plugins, cfg) {
 
 const actionListeners = {};
 let stateChangeListeners = [];
-let app;
 
 const getInitialActions = (options) => {
-    if (!options.initialState) {
+    if (!options.initialState || !options.initialState.defaultState.map) {
         if (options.configUrl) {
             return [loadMapConfig.bind(null, options.configUrl || defaultConfig)];
         }
@@ -223,12 +112,12 @@ const MapStore2 = {
      * @static
      * @param {string} container id of the DOM element that should contain the embedded MapStore2
      * @param {object} options set of options of the embedded app
-     *
-     * The options object can contain the following properties, to configure the app UI and state:
+     *  * The options object can contain the following properties, to configure the app UI and state:
      *  * **plugins**: list of plugins (and the related configuration) to be included in the app
      *    look at [Plugins documentation](./plugins-documentation) for further details
      *  * **config**: map configuration object for the application (look at [Map Configuration](./maps-configuration) for details)
      *  * **configUrl**: map configuration url for the application (look at [Map Configuration](./maps-configuration) for details)
+     *  * **originalUrl**: url of the original instance of MapStore. If present it will be linked inside the map using the "GoFull" plugin, present by default.
      *  * **initialState**: allows setting the initial application state (look at [State Configuration](./app-state-configuration) for details)
      *
      * Styling can be configured either using a **theme**, or a complete custom **less stylesheet**, using the
@@ -259,21 +148,22 @@ const MapStore2 = {
      *      }
      * }
      * ```
+     * @param {object} [plugins] optional plugins definition (defaults to local plugins list)
+     * @param {object} [component] optional page component (defaults to MapStore2 Embedded Page)
      * @example
      * MapStore2.create('container', {
      *      plugins: ['Map']
      * });
      */
-    create(container, options) {
+    create(container, opts, pluginsDef, component) {
         const embedded = require('../containers/Embedded');
-
+        const options = merge({}, this.defaultOptions || {}, opts);
         const {initialState, storeOpts} = options;
 
-        const pluginsDef = require('./plugins');
         const pages = [{
             name: "embedded",
             path: "/",
-            component: embedded,
+            component: component || embedded,
             pageConfig: {
                 pluginsConfig: options.plugins || defaultPlugins
             }
@@ -308,17 +198,30 @@ const MapStore2 = {
         };
 
         const themeCfg = options.theme && assign({}, defaultThemeCfg, options.theme) || defaultThemeCfg;
-        app = ReactDOM.render(<StandardApp themeCfg={themeCfg} className="fill" {...appConfig}/>, document.getElementById(container));
-        app.store.addActionListener((action) => {
-            (actionListeners[action.type] || []).concat(actionListeners['*'] || []).forEach((listener) => {
-                listener.call(null, action);
+        const onStoreInit = (store) => {
+            store.addActionListener((action) => {
+                (actionListeners[action.type] || []).concat(actionListeners['*'] || []).forEach((listener) => {
+                    listener.call(null, action);
+                });
             });
-        });
-        app.store.subscribe(() => {
-            stateChangeListeners.forEach(({listener, selector}) => {
-                listener.call(null, selector(app.store.getState()));
+            store.subscribe(() => {
+                stateChangeListeners.forEach(({listener, selector}) => {
+                    listener.call(null, selector(store.getState()));
+                });
             });
-        });
+        };
+        if (options.noLocalConfig) {
+            ConfigUtils.setLocalConfigurationFile('');
+            ConfigUtils.setConfigProp('proxyUrl', options.proxy || null);
+        }
+
+        if (options.translations) {
+            ConfigUtils.setConfigProp('translationsPath', options.translations);
+        }
+        if (options.originalUrl) {
+            ConfigUtils.setConfigProp('originalUrl', options.originalUrl);
+        }
+        ReactDOM.render(<StandardApp onStoreInit={onStoreInit} themeCfg={themeCfg} className="fill" {...appConfig}/>, document.getElementById(container));
     },
     buildPluginsCfg,
     getParamFromRequest,
@@ -385,6 +288,19 @@ const MapStore2 = {
      */
     offStateChange: (listener) => {
         stateChangeListeners = stateChangeListeners.filter((l) => l !== listener);
+    },
+    /**
+     * Returns a new custom API object using the given plugins list.
+     *
+     * @memberof MapStore2
+     * @static
+     * @param {object} plugins list of included plugins
+     * @param {object} [options] default options (to be overridden on create)
+     * @example
+     * MapStore2.withPlugins({...});
+     */
+    withPlugins: (plugins, options) => {
+        return assign({}, MapStore2, {create: partialRight(MapStore2.create, partialRight.placeholder, partialRight.placeholder, plugins), defaultOptions: options || {}});
     }
 };
 

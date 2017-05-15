@@ -13,6 +13,7 @@ var Layer = require('../DefaultLayer');
 var expect = require('expect');
 
 const TestUtils = require('react-addons-test-utils');
+const assign = require('object-assign');
 
 describe('test DefaultLayer module component', () => {
     beforeEach((done) => {
@@ -136,6 +137,75 @@ describe('test DefaultLayer module component', () => {
         expect(spy.calls.length).toBe(1);
     });
 
+    it('tests additional tools', () => {
+        const l = {
+            name: 'layer00',
+            title: 'Layer',
+            visibility: true,
+            storeIndex: 9,
+            type: 'wms'
+        };
+
+        const AdditionalTool = () => {
+            return <div className="additional-tool"/>;
+        };
+
+        const comp = ReactDOM.render(<Layer visibilityCheckType="checkbox" node={l} additionalTools={[AdditionalTool]}/>,
+            document.getElementById("container"));
+        expect(comp).toExist();
+        const domNode = ReactDOM.findDOMNode(comp);
+        expect(domNode).toExist();
+        const tool = ReactDOM.findDOMNode(TestUtils.scryRenderedDOMComponentsWithClass(comp, "additional-tool")[0]);
+        expect(tool).toExist();
+    });
+
+    it('tests collapsible additional tools', () => {
+        const l = {
+            name: 'layer00',
+            title: 'Layer',
+            visibility: true,
+            storeIndex: 9,
+            type: 'wms',
+            expanded: false
+        };
+
+        const AdditionalTool = () => {
+            return <div className="additional-tool"/>;
+        };
+
+        const comp = ReactDOM.render(<Layer visibilityCheckType="checkbox" node={l} additionalTools={[assign(AdditionalTool, {collapsible: true})]}/>,
+            document.getElementById("container"));
+        expect(comp).toExist();
+        const domNode = ReactDOM.findDOMNode(comp);
+        expect(domNode).toExist();
+        const tool = ReactDOM.findDOMNode(TestUtils.scryRenderedDOMComponentsWithClass(comp, "additional-tool")[0]);
+        expect(tool).toNotExist();
+
+    });
+
+    it('tests collapsible additional tools expanded', () => {
+        const l = {
+            name: 'layer00',
+            title: 'Layer',
+            visibility: true,
+            storeIndex: 9,
+            type: 'wms',
+            expanded: true
+        };
+
+        const AdditionalTool = () => {
+            return <div className="additional-tool"/>;
+        };
+
+        const comp = ReactDOM.render(<Layer visibilityCheckType="checkbox" node={l} additionalTools={[assign(AdditionalTool, {collapsible: true})]}/>,
+            document.getElementById("container"));
+        expect(comp).toExist();
+        const domNode = ReactDOM.findDOMNode(comp);
+        expect(domNode).toExist();
+        const tool = ReactDOM.findDOMNode(TestUtils.scryRenderedDOMComponentsWithClass(comp, "additional-tool")[0]);
+        expect(tool).toExist();
+    });
+
     it('tests zoom tool', () => {
         const l = {
             name: 'layer00',
@@ -218,7 +288,7 @@ describe('test DefaultLayer module component', () => {
         const tool = ReactDOM.findDOMNode(TestUtils.scryRenderedDOMComponentsWithClass(comp, "clayer_removal_button")[0]);
         expect(tool).toExist();
         tool.click();
-        const confirmButton = document.getElementsByClassName("clayer_removal_confirm_button")[0];
+        const confirmButton = document.getElementsByClassName("btn-primary")[0];
         expect(confirmButton).toExist();
         confirmButton.click();
         expect(spy.calls.length).toBe(1);
@@ -279,7 +349,7 @@ describe('test DefaultLayer module component', () => {
         };
         // helper function to get current modals
         const getModals = function() {
-            return document.getElementsByTagName("body")[0].getElementsByClassName('modal-dialog');
+            return document.getElementsByTagName("body")[0].getElementsByClassName('modal-dialog-container');
         };
         // no modals should be available
         const element1 = {layer: {id: 'layer1', name: 'layer1'}, settings: {}};

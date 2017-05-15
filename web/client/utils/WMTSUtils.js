@@ -8,10 +8,30 @@
 
 
 const CoordinatesUtils = require('./CoordinatesUtils');
-const {isString, isArray, isObject, head} = require('lodash');
+const {isString, isArray, isObject, head, slice} = require('lodash');
 
 const WMTSUtils = {
-    getTileMatrixSet: (tileMatrixSet, srs, allowedSRS) => {
+    getDefaultMatrixId: (options) => {
+        let matrixIds = new Array(30);
+        for (let z = 0; z < 30; ++z) {
+            // generate matrixIds arrays for this WMTS
+            matrixIds[z] = options.tileMatrixPrefix + z;
+        }
+        return matrixIds;
+    },
+    getMatrixIds: (matrix, srs) => {
+        return (isObject(matrix) && matrix[srs] || matrix).map((el) => el.identifier);
+    },
+    limitMatrix: (matrix, len) => {
+        if (matrix.length > len) {
+            return slice(matrix, 0, len);
+        }
+        if (matrix.length < len) {
+            return matrix.concat(new Array(len - matrix.length));
+        }
+        return matrix;
+    },
+    getTileMatrixSet: (tileMatrixSet, srs, allowedSRS, matrixIds = {}) => {
         if (tileMatrixSet && isString(tileMatrixSet)) {
             return tileMatrixSet;
         }
@@ -19,18 +39,14 @@ const WMTSUtils = {
             return CoordinatesUtils.getEquivalentSRS(srs, allowedSRS).reduce((previous, current) => {
                 if (isArray(tileMatrixSet)) {
                     const matching = head(tileMatrixSet.filter((matrix) => (matrix["ows:Identifier"] === current || CoordinatesUtils.getEPSGCode(matrix["ows:SupportedCRS"]) === current)));
-                    return matching && matching["ows:Identifier"] || previous;
+                    return matching && matching["ows:Identifier"] && !matrixIds[previous] ? current : previous;
                 } else if (isObject(tileMatrixSet)) {
                     return tileMatrixSet[current] || previous;
                 }
                 return previous;
             }, srs);
         }
-        if (tileMatrixSet && isArray(tileMatrixSet)) {
-            return CoordinatesUtils.getEquivalentSRS(srs, allowedSRS).reduce((previous, current) => {
-                return tileMatrixSet[current] || previous;
-            }, srs);
-        }
+
         return srs;
     }
 };

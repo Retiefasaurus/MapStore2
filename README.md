@@ -2,6 +2,7 @@
 [![Build Status](https://travis-ci.org/geosolutions-it/MapStore2.svg?branch=master)](https://travis-ci.org/geosolutions-it/MapStore2)
 [![Coverage Status](https://coveralls.io/repos/geosolutions-it/MapStore2/badge.svg?branch=master&service=github)](https://coveralls.io/github/geosolutions-it/MapStore2?branch=master)
 [![Codacy Badge](https://www.codacy.com/project/badge/1648d484427346e2877006dc287379b6)](https://www.codacy.com/app/simone-giannecchini/MapStore2)
+[![Inline docs](http://inch-ci.org/github/geosolutions-it/MapStore2.svg?branch=master)](http://inch-ci.org/github/geosolutions-it/MapStore2)
 [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/fold_left.svg?style=social&label=Follow%20%40mapstore2)](https://twitter.com/mapstore2)
 
 MapStore 2
@@ -11,7 +12,7 @@ MapStore 2 is a framework to build *web mapping* applications using standard map
 MapStore 2 has several example applications:
  * MapViewer is a simple viewer of preconfigured maps (optionally stored in a database using GeoStore)
  * MapPublisher has been developed to create, save and share in a simple and intuitive way maps and mashups created selecting contents by server like OpenStreetMap, Google Maps, MapQuest or specific servers provided by your organization or third party.
- 
+
 For more information check the [MapStore documentation](https://dev.mapstore2.geo-solutions.it/mapstore/docs/).
 
 Download
@@ -65,6 +66,10 @@ Update npm to 3.x, using:
 
 `npm install -g npm@3`
 
+Install docma to build the documentation
+
+`npm install -g docma`
+
 Start the demo locally:
 
 `npm cache clean` (this is useful to prevent errors on Windows during install)
@@ -79,7 +84,9 @@ Install latest Maven, if needed, from [here](https://maven.apache.org/download.c
 
 Build the deployable war:
 
-`./build.sh`
+`./build.sh [version_identifier]`
+
+Where version_identifier is an optional identifier of the generated war that will be shown in the settings panel of the application.
 
 Deploy the generated mapstore.war file (in web/target) to your favourite J2EE container (e.g. Tomcat).
 

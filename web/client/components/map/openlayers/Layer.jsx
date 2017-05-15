@@ -62,6 +62,9 @@ const OpenlayersLayer = React.createClass({
                 this.props.map.removeLayer(this.layer);
             }
         }
+        if (this.refreshTimer) {
+            clearInterval(this.refreshTimer);
+        }
         Layers.removeLayer(this.props.type, this.props.options, this.props.map, this.props.mapId, this.layer);
     },
     render() {
@@ -118,13 +121,18 @@ const OpenlayersLayer = React.createClass({
                 return;
             }
         }
-        Layers.updateLayer(
+        const newLayer = Layers.updateLayer(
             this.props.type,
             this.layer,
             this.generateOpts(newProps.options, newProps.position, newProps.projection),
             this.generateOpts(oldProps.options, oldProps.position, oldProps.projection),
             this.props.map,
             this.props.mapId);
+        if (newLayer) {
+            this.props.map.removeLayer(this.layer);
+            this.layer = newLayer;
+            this.addLayer(newProps.options);
+        }
     },
     addLayer(options) {
         if (this.isValid()) {
@@ -171,6 +179,12 @@ const OpenlayersLayer = React.createClass({
                     this.props.onLayerLoad(options.id, {error: event});
                 }
             });
+            if (options.refresh) {
+                let counter = 0;
+                this.refreshTimer = setInterval(() => {
+                    this.layer.getSource().updateParams(assign({}, options.params, {_refreshCounter: counter++}));
+                }, options.refresh);
+            }
         }
     },
     isValid() {

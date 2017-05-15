@@ -6,7 +6,7 @@
 * LICENSE file in the root directory of this source tree.
 */
 const React = require('react');
-const {connect} = require('react-redux');
+const {connect} = require('../../utils/PluginsUtils');
 const {geoStoreLoginSubmit, loginFail, logoutWithReload, geoStoreChangePassword, resetError} = require('../../actions/security');
 const {setControlProperty} = require('../../actions/controls');
 const {Glyphicon} = require('react-bootstrap');
@@ -36,7 +36,9 @@ const UserDetails = connect((state) => ({
 
 const PasswordReset = connect((state) => ({
     user: state.security && state.security.user,
-    show: state.controls.ResetPassword && state.controls.ResetPassword.enabled
+    show: state.controls.ResetPassword && state.controls.ResetPassword.enabled,
+    changed: state.security && state.security.passwordChanged && true || false,
+    error: state.security && state.security.passwordError
 }), {
     onPasswordChange: (user, pass) => { return geoStoreChangePassword(user, pass); },
     onClose: setControlProperty.bind(null, "ResetPassword", "enabled", false, false)

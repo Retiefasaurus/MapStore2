@@ -20,6 +20,10 @@
         "about_p6": "MapStore2 is made by:",
         "enable": "Enable",
         "layers": "Layers",
+        "warning": "Warning",
+        "version": {
+            "label": "Version"
+        },
         "layerProperties": {
             "windowTitle": "Layer Properties",
             "title": "Title",
@@ -28,6 +32,9 @@
             "general": "General",
             "display": "Display",
             "style": "Style",
+            "transparent": "Transparent",
+            "singleTile": "Single Tile",
+            "cached": "Use cache options",
             "styleCustom": "Use style named \"{value}\"",
             "styleListLoadError": "There was an error loading the styles list",
             "stylesRefreshList": "Refresh Styles List",
@@ -36,7 +43,12 @@
             "deleteLayer":"Delete Layer",
             "deleteLayerMessage": "Do you really want to delete this Layer?",
             "confirmDelete": "Are you sure?",
-            "featureTypeError": "Cannot load layer attributes"
+            "featureTypeError": "Cannot load layer attributes",
+            "elevation": "Elevation"
+        },
+        "globeswitcher": {
+            "tooltipDeactivate": "Exit 3D Mode",
+            "tooltipActivate": "Enter 3D Mode"
         },
         "background": "Background",
         "language": "Language",
@@ -53,6 +65,7 @@
         "save": "Save",
 		"saveAs": "Save As...",
         "opacity": "Opacity",
+        "elevation": "Elevation",
         "close": "Close",
         "cancel": "Cancel",
         "confirm": "Confirm",
@@ -65,10 +78,11 @@
         "permissions": "Permissions",
         "home":{
             "open": "Open",
-            "description": "MapStore 2 has been developed to create, save and share in a simple and intuitive way maps and mashups created selecting contents coming from well-known sources like Google Maps and OpenStreetMap or from services provided by organizations using open protocols like OGC WMS, WFS, WMTS or TMS and so on.<br/>Visit the <a href=\"http://geosolutions-it.github.io/MapStore2/\">home page</a> for more details.",
+            "description": "MapStore 2 has been developed to create, save and share in a simple and intuitive way maps and mashups created selecting contents coming from well-known sources like Google Maps and OpenStreetMap or from services provided by organizations using open protocols like OGC WMS, WFS, WMTS or TMS and so on.<br/>Visit the <a href=\"/mapstore/docs/\">home page</a> for more details.",
             "Applications": "Applications",
             "Examples": "Examples",
             "LinkedinGroup": "Mapstore Linkedin Group",
+            "scrollTop": "Scroll to the top of the page",
             "ml": {
                 "title": "Keep in touch and stay up-to-date with the mailing lists",
                 "subscribe_users": "Subscribe Users Mailing List",
@@ -174,7 +188,11 @@
             "editLayerProperties": "Edit layer properties",
             "searchFeatures": "Search on this layer...",
             "removeLayer": "Remove layer",
-            "loadingerror": "The layer has not been loaded correctly"
+            "loadingerror": "The layer has not been loaded correctly",
+            "measure": "Measure",
+            "backgroundSwitcher": "Backgrounds",
+            "layers": "Layers",
+            "drawerButton": "Layers"
         },
         "print":{
             "paneltitle": "Print",
@@ -215,6 +233,7 @@
         },
         "getFeatureInfoTitle": "Feature Info",
         "identifyTitle": "Feature Info",
+        "identifyNoQueryableLayers": "No active queryable layer",
         "identifyRevGeocodeHeader": "Coordinates",
         "identifyRevGeocodeModalTitle": "Address",
         "identifyRevGeocodeSubmitText": "More Info",
@@ -352,6 +371,11 @@
             "zoomOutTooltip": "Decrease Zoom",
             "zoomAllTooltip": "Zoom To Max Extent"
         },
+        "fullscreen": {
+            "tooltipActivate": "Switch to Full Screen",
+            "tooltipDeactivate": "Exit full screen",
+            "viewLargerMap": "View Larger Map"
+        },
         "helptexts": {
             "scaleBox": "This is the helptext for the ScaleBox",
             "zoomToMaxExtentButton": "This is the helptext for the ZoomToMaxExtentButton",
@@ -384,16 +408,20 @@
             "config": {
                 "load_config_exception": "Error Loading Configuration"
             },
+            "comboField": {
+                "default_placeholder": "Select..."
+            },
             "form": {
                 "header": "Find in the dataset",
                 "dataset_header": "Dataset"
             },
+            "emptyfilter": "No filter set. Searching could timeout if pagination is not supported by the server.",
             "attributefilter":{
                 "add_condition": " Add Condition",
                 "add_group": " Add Group",
                 "group_label_a": "Match",
                 "group_label_b": "of the following conditions:",
-                "combo_placeholder": "Select",
+                "combo_placeholder": "Attribute",
                 "text_placeholder": "Type text to search",
                 "attribute_filter_header": "Attribute Filter",
                 "groupField": {
@@ -410,8 +438,9 @@
                 }
             },
             "spatialfilter": {
-                "selection_method": "Selection Method",
+                "filterType": "Filter Type",
                 "geometric_operation": "Geometric Operation",
+                "combo_placeholder": "Select...",
                 "spatial_filter_header": "Spatial Filter",
                 "draw_start_label": "Draw the region of interest on the map",
                 "dwithin_label": "meters",
@@ -454,6 +483,8 @@
             "passwordCheckFail": "Passwords do not match!",
             "username": "Username",
             "password": "Password",
+            "passwordChanged": "Password changed",
+            "passwordError": "Error changing password",
             "signIn":"Sign-in",
             "loginFail":"Login Fail",
             "loginFailedStatusMessages": {
@@ -515,6 +546,11 @@
             "socialIntro": "In your favourite social network",
             "directLinkTitle": "Via a direct link",
             "embeddedLinkTitle": "Via the embedded code",
+            "forceDrawer": "Show TOC",
+            "apiLinkTitle": "Using APIs",
+            "social": "Social",
+            "direct": "Link",
+            "code": "Embed",
             "QRCodeLinkTitle": "qr code",
             "msgCopiedUrl":"Copied",
             "msgToCopyUrl":"Click to copy"
@@ -813,6 +849,10 @@
             "zoomOutButton": {
                 "title": "Zoom Out",
                 "text": "Click to reduce the map"
+            },
+            "fullscreen": {
+                "title": "Full Screen",
+                "text": "Click to go full screen"
             },
             "identifyButton": {
                 "title": "Info",

@@ -26,7 +26,11 @@ const {createEpicMiddleware} = require('redux-observable');
 const SecurityUtils = require('../utils/SecurityUtils');
 const ListenerEnhancer = require('@carnesen/redux-add-action-listener-enhancer').default;
 
-module.exports = (initialState = {defaultState: {}, mobile: {}}, appReducers = {}, appEpics = {}, plugins, storeOpts) => {
+const {syncHistory, routeReducer} = require('react-router-redux');
+const {hashHistory} = require('react-router');
+const reduxRouterMiddleware = syncHistory(hashHistory);
+
+module.exports = (initialState = {defaultState: {}, mobile: {}}, appReducers = {}, appEpics = {}, plugins, storeOpts = {}) => {
     const allReducers = combineReducers(plugins, {
         ...appReducers,
         localConfig: require('../reducers/localConfig'),
@@ -37,11 +41,13 @@ module.exports = (initialState = {defaultState: {}, mobile: {}}, appReducers = {
         help: require('../reducers/help'),
         map: () => {return null; },
         mapInitialConfig: () => {return null; },
-        layers: () => {return null; }
+        layers: () => {return null; },
+        routing: routeReducer
     });
     const rootEpic = combineEpics(plugins, appEpics);
-    const defaultState = initialState.defaultState;
-    const mobileOverride = initialState.mobile;
+    const optsState = storeOpts.initialState || {defaultState: {}, mobile: {}};
+    const defaultState = assign({}, initialState.defaultState, optsState.defaultState);
+    const mobileOverride = assign({}, initialState.mobile, optsState.mobile);
     const epicMiddleware = createEpicMiddleware(rootEpic);
     const rootReducer = (state, action) => {
         let mapState = createHistory(LayersUtils.splitMapAndLayers(mapConfig(state, action)));
@@ -67,7 +73,8 @@ module.exports = (initialState = {defaultState: {}, mobile: {}}, appReducers = {
     if (storeOpts && storeOpts.notify) {
         enhancer = enhancer ? compose(enhancer, ListenerEnhancer) : ListenerEnhancer;
     }
-    store = DebugUtils.createDebugStore(rootReducer, defaultState, [epicMiddleware], enhancer);
+    store = DebugUtils.createDebugStore(rootReducer, defaultState, [epicMiddleware, reduxRouterMiddleware], enhancer);
+    reduxRouterMiddleware.listenForReplays(store);
     if (storeOpts && storeOpts.persist) {
         persistStore(store, storeOpts.persist, storeOpts.onPersist);
     }

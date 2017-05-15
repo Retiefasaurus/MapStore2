@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
  *
@@ -8,6 +8,7 @@
 
 const React = require('react');
 const {connect} = require('react-redux');
+const OverlayTrigger = require('../components/misc/OverlayTrigger');
 
 const Message = require('./locale/Message');
 
@@ -15,11 +16,12 @@ const {toggleControl, setControlProperty} = require('../actions/controls');
 
 const {changeMapStyle} = require('../actions/map');
 
-const {Button, Glyphicon, Panel} = require('react-bootstrap');
+const {Button, Glyphicon, Panel, Tooltip} = require('react-bootstrap');
 
 const Section = require('./drawer/Section');
 
 const {partialRight} = require('lodash');
+
 
 const Menu = connect((state) => ({
     show: state.controls.drawer && state.controls.drawer.enabled,
@@ -33,6 +35,21 @@ const Menu = connect((state) => ({
 
 require('./drawer/drawer.css');
 
+/**
+ * DrawerMenu plugin. Shows a left menu with some pluins rendered inside it (typically the TOC).
+ * @prop {string} cfg.glyph glyph icon to use for the button
+ * @prop {object} cfg.menuButtonStyle Css inline style for the button. Display property will be overridden by the hideButton/forceDrawer options.
+ * @prop {string} cfg.buttonClassName class for the toggle button
+ * @prop {object} cfg.menuOptions options for the drawer menu. They can be `docked`, `width.
+ * @memberof plugins
+ * @class
+ * @example
+ * {
+ *   "name": "DrawerMenu",
+ *   "cfg": {
+ *   "hideButton": true
+ * }
+ */
 const DrawerMenu = React.createClass({
     propTypes: {
         items: React.PropTypes.array,
@@ -56,7 +73,7 @@ const DrawerMenu = React.createClass({
             id: "mapstore-drawermenu",
             items: [],
             toggleMenu: () => {},
-            glyph: "1-stilo",
+            glyph: "1-layer",
             buttonStyle: "primary",
             menuOptions: {},
             singleSection: true,
@@ -86,9 +103,14 @@ const DrawerMenu = React.createClass({
         });
     },
     render() {
+        let tooltip = <Tooltip key="drawerButtonTooltip" id="drawerButtonTooltip"><Message msgId={"toc.drawerButton"}/></Tooltip>;
         return (
             <div id={this.props.id}>
-                <Button id="drawer-menu-button" style={this.props.menuButtonStyle} bsStyle={this.props.buttonStyle} key="menu-button" className={this.props.buttonClassName} onClick={this.props.toggleMenu} disabled={this.props.disabled}><Glyphicon glyph={this.props.glyph}/></Button>
+                <OverlayTrigger placement="bottom" key="drawerButtonTooltip"
+                    overlay={tooltip}>
+                    <Button id="drawer-menu-button" style={this.props.menuButtonStyle} bsStyle={this.props.buttonStyle} key="menu-button" className={this.props.buttonClassName} onClick={this.props.toggleMenu} disabled={this.props.disabled}><Glyphicon glyph={this.props.glyph}/></Button>
+                </OverlayTrigger>
+
                 <Menu single={this.props.singleSection} {...this.props.menuOptions} title={<Message msgId="menu" />} alignment="left">
                     {this.renderItems()}
                 </Menu>

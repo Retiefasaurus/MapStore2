@@ -70,6 +70,9 @@ const LeafletLayer = React.createClass({
     componentWillUnmount() {
         if (this.layer && this.props.map) {
             this.removeLayer();
+            if (this.refreshTimer) {
+                clearInterval(this.refreshTimer);
+            }
         }
     },
     render() {
@@ -131,11 +134,23 @@ const LeafletLayer = React.createClass({
         }
     },
     updateLayer(newProps, oldProps) {
-        Layers.updateLayer(newProps.type, this.layer, this.generateOpts(newProps.options, newProps.position), this.generateOpts(oldProps.options, oldProps.position));
+        const newLayer = Layers.updateLayer(newProps.type, this.layer, this.generateOpts(newProps.options, newProps.position),
+            this.generateOpts(oldProps.options, oldProps.position));
+        if (newLayer) {
+            this.removeLayer();
+            this.layer = newLayer;
+            this.addLayer();
+        }
     },
     addLayer() {
         if (this.isValid()) {
             this.props.map.addLayer(this.layer);
+            if (this.props.options.refresh && this.layer.setParams) {
+                let counter = 0;
+                this.refreshTimer = setInterval(() => {
+                    this.layer.setParams(assign({}, this.props.options.params, {_refreshCounter: counter++}));
+                }, this.props.options.refresh);
+            }
         }
     },
     removeLayer() {

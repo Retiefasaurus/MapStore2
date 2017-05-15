@@ -10,13 +10,15 @@ const {connect} = require('react-redux');
 const {createSelector} = require('reselect');
 const {Button, Glyphicon} = require('react-bootstrap');
 
-const {changeLayerProperties, changeGroupProperties, toggleNode,
+const {changeLayerProperties, changeGroupProperties, toggleNode, contextNode,
        sortNode, showSettings, hideSettings, updateSettings, updateNode, removeNode} = require('../actions/layers');
 const {getLayerCapabilities} = require('../actions/layerCapabilities');
 const {zoomToExtent} = require('../actions/map');
 const {groupsSelector} = require('../selectors/layers');
+const {mapSelector} = require('../selectors/map');
 
 const LayersUtils = require('../utils/LayersUtils');
+const mapUtils = require('../utils/MapUtils');
 
 const Message = require('./locale/Message');
 const assign = require('object-assign');
@@ -50,7 +52,7 @@ const {
     zoneChange
 } = require('../actions/queryform');
 
-const {createQuery, toggleQueryPanel, describeFeatureType} = require('../actions/wfsquery');
+const {createQuery, toggleQueryPanel} = require('../actions/wfsquery');
 
 const {
     changeDrawingStatus,
@@ -82,15 +84,14 @@ const SmartQueryForm = connect((state) => {
         params: {typeName: state.query && state.query.typeName},
         resultTitle: "Query Result",
         showGeneratedFilter: false,
+        allowEmptyFilter: true,
+        emptyFilterWarning: true,
         maxHeight: state.map && state.map.present && state.map.present.size && state.map.present.size.height
     };
 }, dispatch => {
     return {
 
         attributeFilterActions: bindActionCreators({
-            onLoadFeatureTypeConfig: (url, params) => {
-                return describeFeatureType(url, params.typeName);
-            },
             onAddGroupField: addGroupField,
             onAddFilterField: addFilterField,
             onRemoveFilterField: removeFilterField,
@@ -127,12 +128,18 @@ const tocSelector = createSelector(
         (state) => state.controls && state.controls.toolbar && state.controls.toolbar.active === 'toc',
         groupsSelector,
         (state) => state.layers && state.layers.settings || {expanded: false, options: {opacity: 1}},
-        (state) => state.controls && state.controls.queryPanel && state.controls.queryPanel.enabled || false
-    ], (enabled, groups, settings, querypanelEnabled) => ({
+        (state) => state.controls && state.controls.queryPanel && state.controls.queryPanel.enabled || false,
+        mapSelector
+    ], (enabled, groups, settings, querypanelEnabled, map) => ({
         enabled,
         groups,
         settings,
-        querypanelEnabled
+        querypanelEnabled,
+        currentZoomLvl: map && map.zoom,
+        scales: mapUtils.getScales(
+            map && map.projection || 'EPSG:3857',
+            map && map.mapOptions && map.mapOptions.view && map.mapOptions.view.DPI || null
+        )
     })
 );
 
@@ -153,6 +160,7 @@ const LayerTree = React.createClass({
         layerPropertiesChangeHandler: React.PropTypes.func,
         onToggleGroup: React.PropTypes.func,
         onToggleLayer: React.PropTypes.func,
+        onContextMenu: React.PropTypes.func,
         onToggleQuery: React.PropTypes.func,
         onZoomToExtent: React.PropTypes.func,
         retrieveLayerData: React.PropTypes.func,
@@ -168,7 +176,12 @@ const LayerTree = React.createClass({
         activateQueryTool: React.PropTypes.bool,
         activateSettingsTool: React.PropTypes.bool,
         visibilityCheckType: React.PropTypes.string,
-        settingsOptions: React.PropTypes.object
+        settingsOptions: React.PropTypes.object,
+        chartStyle: React.PropTypes.object,
+        currentZoomLvl: React.PropTypes.number,
+        scales: React.PropTypes.array,
+        layerOptions: React.PropTypes.object,
+        groupOptions: React.PropTypes.object
     },
     getDefaultProps() {
         return {
@@ -177,6 +190,7 @@ const LayerTree = React.createClass({
             retrieveLayerData: () => {},
             onToggleGroup: () => {},
             onToggleLayer: () => {},
+            onContextMenu: () => {},
             onToggleQuery: () => {},
             onZoomToExtent: () => {},
             onSettings: () => {},
@@ -191,10 +205,11 @@ const LayerTree = React.createClass({
             settingsOptions: {
                 includeCloseButton: false,
                 closeGlyph: "1-close",
-                asModal: false,
                 buttonSize: "small"
             },
-            querypanelEnabled: false
+            querypanelEnabled: false,
+            layerOptions: {},
+            groupOptions: {}
         };
     },
     getNoBackgroundLayers(group) {
@@ -202,6 +217,7 @@ const LayerTree = React.createClass({
     },
     renderTOC() {
         const Group = (<DefaultGroup onSort={this.props.onSort}
+                                  {...this.props.groupOptions}
                                   propertiesChangeHandler={this.props.groupPropertiesChangeHandler}
                                   onToggle={this.props.onToggleGroup}
                                   style={this.props.groupStyle}
@@ -209,8 +225,10 @@ const LayerTree = React.createClass({
                                   visibilityCheckType={this.props.visibilityCheckType}
                                   />);
         const Layer = (<DefaultLayer
+                            {...this.props.layerOptions}
                             settingsOptions={this.props.settingsOptions}
                             onToggle={this.props.onToggleLayer}
+                            onContextMenu={this.props.onContextMenu}
                             onToggleQuerypanel={this.props.onToggleQuery }
                             onZoom={this.props.onZoomToExtent}
                             onSettings={this.props.onSettings}
@@ -227,11 +245,15 @@ const LayerTree = React.createClass({
                             activateQueryTool={this.props.activateQueryTool}
                             activateSettingsTool={this.props.activateSettingsTool}
                             retrieveLayerData={this.props.retrieveLayerData}
+                            chartStyle={this.props.chartStyle}
                             settingsText={<Message msgId="layerProperties.windowTitle"/>}
                             opacityText={<Message msgId="opacity"/>}
+                            elevationText={<Message msgId="elevation"/>}
                             saveText={<Message msgId="save"/>}
                             closeText={<Message msgId="close"/>}
-                            groups={this.props.groups}/>);
+                            groups={this.props.groups}
+                            currentZoomLvl={this.props.currentZoomLvl}
+                            scales={this.props.scales}/>);
         return (
             <div>
                 <TOC onSort={this.props.onSort} filter={this.getNoBackgroundLayers}
@@ -267,6 +289,7 @@ const TOCPlugin = connect(tocSelector, {
     retrieveLayerData: getLayerCapabilities,
     onToggleGroup: LayersUtils.toggleByType('groups', toggleNode),
     onToggleLayer: LayersUtils.toggleByType('layers', toggleNode),
+    onContextMenu: contextNode,
     onToggleQuery: toggleQueryPanel,
     onSort: LayersUtils.sortUsing(LayersUtils.sortLayers, sortNode),
     onSettings: showSettings,
@@ -298,7 +321,8 @@ module.exports = {
             icon: <img src={layersIcon}/>,
             title: 'layers',
             buttonConfig: {
-                buttonClassName: "square-button no-border"
+                buttonClassName: "square-button no-border",
+                tooltip: "toc.layers"
             },
             priority: 2
         }

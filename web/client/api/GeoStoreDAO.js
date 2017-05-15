@@ -8,7 +8,7 @@
 const axios = require('../libs/ajax');
 const _ = require('lodash');
 const assign = require('object-assign');
-
+const uuidv1 = require('uuid/v1');
 const ConfigUtils = require('../utils/ConfigUtils');
 const {findIndex} = require('lodash');
 
@@ -20,7 +20,12 @@ let parseAdminGroups = (groupsObj) => {
 };
 
 let parseUserGroups = (groupsObj) => {
-    if (!groupsObj || !groupsObj.User || !groupsObj.User.groups || !groupsObj.User.groups.group || !_.isArray(groupsObj.User.groups.group)) return [];
+    if (!groupsObj || !groupsObj.User || !groupsObj.User.groups || !groupsObj.User.groups.group || !_.isArray(groupsObj.User.groups.group)) {
+        if (_.has(groupsObj.User.groups.group, "id", "groupName")) {
+            return [groupsObj.User.groups.group];
+        }
+        return [];
+    }
     return groupsObj.User.groups.group.filter(obj => !!obj.id).map((obj) => _.pick(obj, ["id", "groupName", "description"]));
 };
 
@@ -219,6 +224,8 @@ var Api = {
         if (postUser.newPassword) {
             postUser.password = postUser.newPassword;
         }
+        // uuid is time-based
+        postUser.attribute = {name: "uuid", value: uuidv1()};
         return axios.post(url, {User: postUser}, this.addBaseUrl(parseOptions(options))).then(function(response) {return response.data; });
     },
     deleteUser: function(id, options = {}) {
