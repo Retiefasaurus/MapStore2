@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
  *
@@ -42,6 +42,7 @@ const {
     expandAttributeFilterPanel,
     expandSpatialFilterPanel,
     selectSpatialMethod,
+    selectViewportSpatialMethod,
     selectSpatialOperation,
     removeSpatialSelection,
     showSpatialSelectionDetails,
@@ -105,6 +106,7 @@ const SmartQueryForm = connect((state) => {
         spatialFilterActions: bindActionCreators({
             onExpandSpatialFilterPanel: expandSpatialFilterPanel,
             onSelectSpatialMethod: selectSpatialMethod,
+            onSelectViewportSpatialMethod: selectViewportSpatialMethod,
             onSelectSpatialOperation: selectSpatialOperation,
             onChangeDrawingStatus: changeDrawingStatus,
             onRemoveSpatialSelection: removeSpatialSelection,
@@ -282,7 +284,29 @@ const LayerTree = React.createClass({
         return this.renderTOC();
     }
 });
-
+/**
+ * TOC plugins
+ * @name TOC
+ * @class
+ * @memberof plugins
+ * @prop {boolean} cfg.activateQueryTool
+ * @prop {object} cfg.layerOptions: options to pass to the layer.
+ * Some of the layerOptions are: `legendContainerStyle`, `legendStyle`. These 2 allow to customize the legend:
+ * For instance you can pass some stying props to the legend.
+ * this example is to make the legend scrollable horizontally
+ * ```
+ * "layerOptions": {
+ *  "legendOptions": {
+ *    "legendContainerStyle": {
+ *     "overflowX": "auto"
+ *    },
+ *    "legendStyle": {
+ *      "maxWidth": "250%"
+ *    }
+ *   }
+ *  }
+```
+ */
 const TOCPlugin = connect(tocSelector, {
     groupPropertiesChangeHandler: changeGroupProperties,
     layerPropertiesChangeHandler: changeLayerProperties,
